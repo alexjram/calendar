@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1762388222005,
+      "tag": "0000_natural_madame_web",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1762904272515,
+      "tag": "0002_flaky_epoch",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1762905639812,
+      "tag": "0003_perfect_black_panther",
+      "breakpoints": true
+    }
+  ]
+}
