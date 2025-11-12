@@ -5,12 +5,14 @@ import { useState } from "react";
 import { BLACK, PRIMARY, WHITE } from "@/constants/Colors";
 import TaskCreator from "@/components/TaskCreator";
 import useTasks from "@/hooks/useDB";
-
+import TaskEditor from "@/components/TaskEditor";
 
 
 export default function Index() {
-	const { tasks, addTask, markAsCompleted, markAsUncompleted } = useTasks()
+	const { tasks, addTask, markAsCompleted, markAsUncompleted, updateTask, deleteTask } = useTasks()
 	const [showAddAct, setShowAddAct] = useState<boolean>(false)
+	const [showEditAct, setShowEditAct] = useState<boolean>(false)
+	const [selectedTask, setSelectedTask] = useState<ITask | null>(null)
 	const handleAddActButton = () => {
 		setShowAddAct(true)
 	}
@@ -26,7 +28,17 @@ export default function Index() {
 	const handleAddAct = async (name: string) => {
 		await addTask(name)
 	}
-	console.log(tasks)
+	const handleEditAct = async (task: ITask) => {
+		await updateTask(task.id, task.title)
+	}
+	const handleDeleteAct = async () => {
+		if (!selectedTask) return
+		await deleteTask(selectedTask.id)
+	}
+	const handleSelectAct = (task: ITask) => {
+		setSelectedTask(task)
+		setShowEditAct(true)
+	}
 	return (
 		<View style={styles.container}>
 			<StyledText style={styles.title}>Action Tracker</StyledText>
@@ -36,7 +48,7 @@ export default function Index() {
 				data={tasks}
 				renderItem={({ item, index }) => (
 					<View style={styles.activity} key={index}>
-						<StyledText style={styles.activityTitle}>{item.title}</StyledText>
+						<StyledText style={styles.activityTitle} onPress={() => handleSelectAct(item)}>{item.title}</StyledText>
 						<Checkbox value={item.hasCompleted} onValueChange={val => handleActChange(index, val)} color={PRIMARY} />
 					</View>
 				)}
@@ -45,6 +57,7 @@ export default function Index() {
 				<StyledText style={styles.addActText}>Add Activity</StyledText>
 			</Pressable>
 			<TaskCreator visible={showAddAct} setVisible={setShowAddAct} onSave={handleAddAct} />
+			{selectedTask && <TaskEditor visible={showEditAct} setVisible={setShowEditAct} onEdit={handleEditAct} onDelete={handleDeleteAct} task={selectedTask} />}
 		</View >
 	);
 }

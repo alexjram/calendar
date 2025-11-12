@@ -3,13 +3,6 @@ import { DBContext } from "@/context/DBContext";
 import { tasks, completions } from "@/db/schema";
 import { sql } from "drizzle-orm";
 
-interface ITask {
-	id: number
-	title: string
-	createdAt: Date
-	updatedAt: Date
-	hasCompleted: boolean
-}
 
 export default function useTasks() {
 	const db = useContext(DBContext)

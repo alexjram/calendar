@@ -3,20 +3,20 @@
 ## **Code Quality & Architecture**
 
 ### Type Safety
-- [ ] Fix type assertion in `app/index.tsx:13` - create proper interface for tasks with completion status
-- [ ] Update database schema to use `default(sql('CURRENT_TIMESTAMP'))` for automatic timestamps
+- [x] Fix type assertion in `app/index.tsx:13` - create proper interface for tasks with completion status
+- [x] Update database schema to use `default(sql('CURRENT_TIMESTAMP'))` for automatic timestamps (this is sqlite so it wont work)
 - [ ] Add proper error handling for all async operations
-- [ ] Create shared type definitions file
+- [x] Create shared type definitions file
 
 ### Database Layer
 - [ ] Implement database connection pooling and error boundaries
 - [ ] Add repository pattern to abstract database operations
-- [ ] Add database versioning and backup strategies
+- [x] Add database versioning and backup strategies
 - [ ] Create indexes on frequently queried columns (taskId, completedAt)
 - [ ] Add database migration rollback functionality
 
 ### State Management
-- [ ] Replace direct context usage with custom hooks (e.g., `useTasks()`, `useDatabase()`)
+- [x] Replace direct context usage with custom hooks (e.g., `useTasks()`, `useDatabase()`)
 - [ ] Implement proper loading states and error handling
 - [ ] Consider adding React Query or SWR for data fetching and caching
 - [ ] Add global state management for complex features
@@ -82,13 +82,8 @@
 ## **Feature Enhancements**
 
 ### Task Management
-- [ ] Add task categories/tags
-- [ ] Implement task priorities (high, medium, low)
-- [ ] Add recurring tasks functionality
-- [ ] Add task notes/description field
-- [ ] Implement task editing capability
-- [ ] Add swipe-to-delete gestures
-- [ ] Add task search/filter functionality
+- [x] Implement task editing capability
+- [x] Add swipe-to-delete gestures
 
 ### History & Analytics
 - [ ] Connect calendar view to actual completion data
@@ -109,7 +104,7 @@
 
 ### File Structure
 - [ ] Move database operations to separate services directory
-- [ ] Create shared hooks directory
+- [x] Create shared hooks directory
 - [ ] Implement proper barrel exports
 - [ ] Separate styles into dedicated files
 - [ ] Create component library structure
