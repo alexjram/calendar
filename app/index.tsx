@@ -1,11 +1,11 @@
-import { View, StyleSheet, FlatList, Pressable } from "react-native";
-import { Checkbox } from 'expo-checkbox'
 import StyledText from "@/components/StyledText";
-import { useState } from "react";
-import { BLACK, PRIMARY, WHITE } from "@/constants/Colors";
 import TaskCreator from "@/components/TaskCreator";
-import useTasks from "@/hooks/useDB";
 import TaskEditor from "@/components/TaskEditor";
+import { BLACK, PRIMARY, WHITE } from "@/constants/Colors";
+import useTasks from "@/hooks/useDB";
+import { Checkbox } from 'expo-checkbox';
+import { useState } from "react";
+import { FlatList, Pressable, StyleSheet, View } from "react-native";
 
 
 export default function Index() {
@@ -48,18 +48,18 @@ export default function Index() {
 				data={tasks}
 				renderItem={({ item, index }) => (
 					<View style={styles.activity} key={index}>
-						<StyledText style={styles.activityTitle} onPress={() => handleSelectAct(item)}>{item.title}</StyledText>
-						<Checkbox value={item.hasCompleted} onValueChange={val => handleActChange(index, val)} color={PRIMARY} />
+						<StyledText style={styles.activityTitle} onPress={() => handleSelectAct(item)}>{item.title || 'Untitled'}</StyledText>
+						<Checkbox value={item.hasCompleted > 0} onValueChange={val => handleActChange(index, val)} color={PRIMARY} />
 					</View>
 				)}
 			/>
-			<Pressable style={styles.addActButton} onPress={handleAddActButton} >
+			<Pressable style={styles.addActButton} onPress={handleAddActButton}>
 				<StyledText style={styles.addActText}>Add Activity</StyledText>
 			</Pressable>
 			<TaskCreator visible={showAddAct} setVisible={setShowAddAct} onSave={handleAddAct} />
 			{selectedTask && <TaskEditor visible={showEditAct} setVisible={setShowEditAct} onEdit={handleEditAct} onDelete={handleDeleteAct} task={selectedTask} />}
 		</View >
-	);
+	)
 }
 
 const styles = StyleSheet.create({

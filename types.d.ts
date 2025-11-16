@@ -3,5 +3,5 @@ interface ITask {
 	title: string
 	createdAt: Date
 	updatedAt: Date
-	hasCompleted: boolean
+	hasCompleted: 1 | 0
 }

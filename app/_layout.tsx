@@ -5,7 +5,7 @@ import { HappyMonkey_400Regular } from '@expo-google-fonts/happy-monkey/400Regul
 import { BLACK, PRIMARY, WHITE } from "@/constants/Colors";
 import * as SQLite from "expo-sqlite";
 import { drizzle } from 'drizzle-orm/expo-sqlite';
-import { DefaultLogger } from 'drizzle-orm/logger';
+
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import migrations from '../drizzle/migrations';
 import { DBProvider } from "@/context/DBContext";
@@ -13,7 +13,7 @@ import { View } from "react-native";
 import StyledText from "@/components/StyledText";
 
 const expo = SQLite.openDatabaseSync('db.sqlite');
-const db = drizzle(expo, { logger: true });
+const db = drizzle(expo);
 
 export default function RootLayout() {
 	const { success, error } = useMigrations(db, migrations);
@@ -24,11 +24,14 @@ export default function RootLayout() {
 		return null
 	}
 	if (!success) {
-		console.error(error);
+		console.error('Database migration failed:', error);
 		return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: WHITE }}>
-			<StyledText>Error loading DB</StyledText>
+			<StyledText>Database Error</StyledText>
+			<StyledText>Please restart the app</StyledText>
 		</View>
 	}
+
+
 	return (
 		<DBProvider db={db}>
 			<Tabs screenOptions={{

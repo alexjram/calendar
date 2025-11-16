@@ -1,8 +1,12 @@
+import CompletionModal from "@/components/CompletionModal"
 import StyledText from "@/components/StyledText"
 import { WHITE } from "@/constants/Colors"
+import { useState } from "react"
 import { View, StyleSheet } from "react-native"
 import { Calendar } from 'react-native-calendars'
 export default function Index() {
+	const [visible, setVisible] = useState(false)
+	const [day, setDay] = useState(new Date())
 	return (
 		<View style={styles.container}>
 			<StyledText style={styles.title}>History</StyledText>
@@ -10,7 +14,12 @@ export default function Index() {
 				style={styles.calendar}
 				enableSwipeMonths
 				current={new Date().toUTCString()}
+				onDayPress={(date) => {
+					setDay(new Date(date.dateString))
+					setVisible(true)
+				}}
 			/>
+			<CompletionModal visible={visible} setVisible={setVisible} day={day} />
 		</View>
 	)
 }

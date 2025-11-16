@@ -18,17 +18,14 @@
 ### State Management
 - [x] Replace direct context usage with custom hooks (e.g., `useTasks()`, `useDatabase()`)
 - [ ] Implement proper loading states and error handling
-- [ ] Consider adding React Query or SWR for data fetching and caching
-- [ ] Add global state management for complex features
+- [x] Consider adding React Query or SWR for data fetching and caching
 
 ## **UI/UX Enhancements**
 
 ### Accessibility
-- [ ] Add accessibility labels and hints to all interactive elements
 - [ ] Implement proper focus management for modals
 - [ ] Add haptic feedback for user interactions
 - [ ] Ensure proper color contrast ratios
-- [ ] Add screen reader support
 
 ### Responsive Design
 - [ ] Replace fixed values with percentage-based layouts or responsive units

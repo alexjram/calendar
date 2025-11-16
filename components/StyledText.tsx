@@ -12,6 +12,9 @@ export default function StyledText({ size, style, children, ...props }: Props) {
 	if (size) {
 		actualStyle.push({ fontSize: size })
 	}
+	if (typeof children !== 'string') {
+		return null
+	}
 	return (
 		<Text style={actualStyle} {...props}>{children}</Text>
 	)

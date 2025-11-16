@@ -1,34 +1,54 @@
 import StyledText from "@/components/StyledText"
-import { PRIMARY, WHITE } from "@/constants/Colors"
-import { View, StyleSheet } from "react-native"
-import { CartesianChart, Bar } from 'victory-native'
+import { WHITE } from "@/constants/Colors"
+import useTasks from "@/hooks/useDB"
+import { Dispatch, useEffect, useState } from "react"
+import { StyleSheet, View } from "react-native"
+import DropDownPicker from 'react-native-dropdown-picker'
 
-const dataCreator = (length: number = 10) =>
-	Array.from({ length }, (_, index) => ({
-		month: index + 1,
-		listenCount: Math.floor(Math.random() * 100 - 50 + 1) + 50
-	}))
-
+interface ICountByWeek extends Record<string, unknown> {
+	count: number
+	week: string
+	id: number
+	title: string
+}
 
 export default function Index() {
-	const data = dataCreator(5)
-	console.log(data)
+	const [open, setOpen] = useState(false)
+	const [task, setTask] = useState<ITask | null>(null)
+	const { tasks, loading, error, getCountByWeek } = useTasks()
+	const [countByWeek, setCountByWeek] = useState<ICountByWeek[]>([])
+	const handleSelect: Dispatch<any> = (item: string) => {
+		if (!tasks) return
+		let selectedTask = tasks.find(t => t.id === Number(item))
+		if (!selectedTask) return
+		setTask(selectedTask)
+	}
+	useEffect(() => {
+		if (!task) return
+		getCountByWeek().then(counts => {
+			if (counts) {
+				setCountByWeek(counts)
+			}
+		})
+	}, [task])
+	if (loading && !task) return <StyledText>Loading...</StyledText>
+	if (error && !task) return <StyledText>Error: {error?.toString() || 'Unknown error'}</StyledText>
 	return (
 		<View style={styles.container}>
 			<StyledText style={styles.title}>Stats</StyledText>
-			<View style={{ flex: 1.5, backgroundColor: PRIMARY, height: 100 }}>
-				<CartesianChart data={data} xKey="month" yKeys={["listenCount"]}>
-					{({ points, chartBounds }) => (
-						<Bar
-							points={points.listenCount}
-							chartBounds={chartBounds}
-							color={PRIMARY}
-						>
-
-						</Bar>
-					)}
-				</CartesianChart>
-			</View>
+			<DropDownPicker
+				open={open}
+				setOpen={setOpen}
+				items={tasks.map(t => ({ label: t.title || 'Untitled', value: t.id.toString() }))}
+				setValue={handleSelect}
+				value={task?.id?.toString() || null}
+			/>
+			{task === null ? (
+				<View>
+					<StyledText>Select a task to see stats</StyledText>
+				</View>
+			) : (<StyledText> helo </StyledText>
+			)}
 		</View>
 	)
 }
@@ -41,7 +61,8 @@ const styles = StyleSheet.create({
 		paddingTop: 50,
 		paddingHorizontal: 20,
 		paddingBottom: 20,
-		backgroundColor: WHITE
+		backgroundColor: WHITE,
+		maxWidth: '100%'
 	},
 
 	title: {
