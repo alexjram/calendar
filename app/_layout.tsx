@@ -1,11 +1,12 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { StatusBar } from "expo-status-bar";
 import { Tabs } from "expo-router";
 import { useFonts } from "@expo-google-fonts/happy-monkey/useFonts"
 import { HappyMonkey_400Regular } from '@expo-google-fonts/happy-monkey/400Regular'
 import { BLACK, PRIMARY, WHITE } from "@/constants/Colors";
 import * as SQLite from "expo-sqlite";
 import { drizzle } from 'drizzle-orm/expo-sqlite';
-
+import Toast from 'react-native-toast-message';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import migrations from '../drizzle/migrations';
 import { DBProvider } from "@/context/DBContext";
@@ -54,6 +55,8 @@ export default function RootLayout() {
 					tabBarIcon: ({ color, focused }) => (<Ionicons name={focused ? 'stats-chart-sharp' : 'stats-chart-outline'} color={color} size={24} />)
 				}} />
 			</Tabs>
+			<Toast />
+			<StatusBar style="dark" />
 		</DBProvider>
 	);
 }

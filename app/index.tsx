@@ -6,7 +6,7 @@ import useTasks from "@/hooks/useDB";
 import { Checkbox } from 'expo-checkbox';
 import { useState } from "react";
 import { FlatList, Pressable, StyleSheet, View } from "react-native";
-
+import Toast from 'react-native-toast-message';
 
 export default function Index() {
 	const { tasks, addTask, markAsCompleted, markAsUncompleted, updateTask, deleteTask } = useTasks()
@@ -18,22 +18,70 @@ export default function Index() {
 	}
 
 	const handleActChange = async (index: number, value: boolean) => {
-		if (value) {
-			console.log("mark as completed", tasks[index])
-			await markAsCompleted(tasks[index].id)
-		} else {
-			await markAsUncompleted(tasks[index].id)
+		try {
+			if (value) {
+				await markAsCompleted(tasks[index].id)
+			} else {
+				await markAsUncompleted(tasks[index].id)
+			}
+		} catch (error: any) {
+			Toast.show({
+				type: "error",
+				text1: "Error",
+				text2: error.message
+			})
 		}
 	}
 	const handleAddAct = async (name: string) => {
-		await addTask(name)
+		try {
+			await addTask(name)
+			Toast.show({
+				type: "success",
+				text1: "Success",
+				text2: "Task added successfully"
+			})
+		} catch (error: any) {
+			Toast.show({
+				type: "error",
+				text1: "Error",
+				text2: error.message
+			})
+		}
 	}
 	const handleEditAct = async (task: ITask) => {
-		await updateTask(task.id, task.title)
+		try {
+			await updateTask(task.id, task.title)
+			Toast.show({
+				type: "success",
+				text1: "Success",
+				text2: "Task updated successfully"
+			})
+			setShowEditAct(false)
+		} catch (error: any) {
+			Toast.show({
+				type: "error",
+				text1: "Error",
+				text2: error.message
+			})
+		}
 	}
 	const handleDeleteAct = async () => {
 		if (!selectedTask) return
-		await deleteTask(selectedTask.id)
+		try {
+			await deleteTask(selectedTask.id)
+			Toast.show({
+				type: "success",
+				text1: "Success",
+				text2: "Task deleted successfully"
+			})
+			setShowEditAct(false)
+		} catch (error: any) {
+			Toast.show({
+				type: "error",
+				text1: "Error",
+				text2: error.message
+			})
+		}
 	}
 	const handleSelectAct = (task: ITask) => {
 		setSelectedTask(task)

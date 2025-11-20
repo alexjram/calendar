@@ -35,6 +35,7 @@ export default function CompletionModal({ day, visible, setVisible }: Props) {
 			transparent={false}
 			visible={visible}
 			onRequestClose={handleClose}
+			style={{ margin: 0 }}
 		>
 			<View style={styles.modalContainer}>
 				<StyledText style={styles.modalTitle}>Day: {day.toLocaleDateString()}</StyledText>
@@ -64,18 +65,19 @@ const styles = StyleSheet.create({
 	},
 	modalContainer: {
 		backgroundColor: WHITE,
-		width: "100%",
-		height: "100%",
 		justifyContent: "center",
 		alignItems: "center",
 		paddingHorizontal: 30,
 		paddingBottom: 100,
-		paddingTop: 100
+		paddingTop: 100,
+		flex: 1
+
 	},
 	modalTitle: {
 		fontSize: 32,
 		marginTop: 20,
-		textAlign: "center"
+		textAlign: "center",
+		color: BLACK
 	},
 	modalButton: {
 		backgroundColor: PRIMARY,
