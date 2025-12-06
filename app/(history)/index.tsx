@@ -15,7 +15,7 @@ export default function Index() {
 				enableSwipeMonths
 				current={new Date().toUTCString()}
 				onDayPress={(date) => {
-					setDay(new Date(date.dateString))
+					setDay(new Date(date.year, date.month, date.day))
 					setVisible(true)
 				}}
 			/>

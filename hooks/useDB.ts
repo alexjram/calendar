@@ -176,6 +176,7 @@ export default function useTasks() {
 		tasks: dbTasks,
 		loading,
 		error,
+		getTasks,
 		addTask,
 		deleteTask,
 		updateTask,

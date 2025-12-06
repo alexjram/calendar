@@ -9,7 +9,7 @@ import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import Toast from 'react-native-toast-message';
 
 export default function Index() {
-	const { tasks, addTask, markAsCompleted, markAsUncompleted, updateTask, deleteTask } = useTasks()
+	const { tasks, loading, addTask, markAsCompleted, markAsUncompleted, updateTask, deleteTask, getTasks } = useTasks()
 	const [showAddAct, setShowAddAct] = useState<boolean>(false)
 	const [showEditAct, setShowEditAct] = useState<boolean>(false)
 	const [selectedTask, setSelectedTask] = useState<ITask | null>(null)
@@ -83,6 +83,17 @@ export default function Index() {
 			})
 		}
 	}
+	const refreshTasks = async () => {
+		try {
+			await getTasks()
+		} catch (error: any) {
+			Toast.show({
+				type: "error",
+				text1: "Error",
+				text2: error.message
+			})
+		}
+	}
 	const handleSelectAct = (task: ITask) => {
 		setSelectedTask(task)
 		setShowEditAct(true)
@@ -94,6 +105,8 @@ export default function Index() {
 			<FlatList
 				style={styles.box}
 				data={tasks}
+				onRefresh={refreshTasks}
+				refreshing={loading}
 				renderItem={({ item, index }) => (
 					<View style={styles.activity} key={index}>
 						<StyledText style={styles.activityTitle} onPress={() => handleSelectAct(item)}>{item.title || 'Untitled'}</StyledText>
