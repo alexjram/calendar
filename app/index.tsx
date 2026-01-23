@@ -17,13 +17,18 @@ export default function Index() {
 		setShowAddAct(true)
 	}
 
-	const handleActChange = async (index: number, value: boolean) => {
+	const handleActChange = async (id: number, value: boolean) => {
 		try {
 			if (value) {
-				await markAsCompleted(tasks[index].id)
+				await markAsCompleted(id)
 			} else {
-				await markAsUncompleted(tasks[index].id)
+				await markAsUncompleted(id)
 			}
+			Toast.show({
+				type: "success",
+				text1: "Success",
+				text2: `Task marked as ${value ? 'completed' : 'incomplete'}`
+			})
 		} catch (error: any) {
 			Toast.show({
 				type: "error",
@@ -110,7 +115,7 @@ export default function Index() {
 				renderItem={({ item, index }) => (
 					<View style={styles.activity} key={index}>
 						<StyledText style={styles.activityTitle} onPress={() => handleSelectAct(item)}>{item.title || 'Untitled'}</StyledText>
-						<Checkbox value={item.hasCompleted > 0} onValueChange={val => handleActChange(index, val)} color={PRIMARY} />
+						<Checkbox value={item.hasCompleted > 0} onValueChange={val => handleActChange(item.id, val)} color={PRIMARY} style={styles.checkbox} />
 					</View>
 				)}
 			/>
@@ -170,5 +175,9 @@ const styles = StyleSheet.create({
 	addActText: {
 		color: WHITE,
 		fontSize: 20
+	},
+	checkbox: {
+		width: 24,
+		height: 24,
 	}
 })

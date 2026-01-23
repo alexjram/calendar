@@ -1,5 +1,5 @@
 import StyledText from "@/components/StyledText"
-import { BLACK, WHITE } from "@/constants/Colors"
+import { BLACK, PRIMARY, WHITE } from "@/constants/Colors"
 import useTasks from "@/hooks/useDB"
 import { HappyMonkey_400Regular } from "@expo-google-fonts/happy-monkey"
 import { useFont } from "@shopify/react-native-skia"
@@ -101,7 +101,7 @@ export default function Index() {
 							}}
 						>
 							{({ points }) => (
-								<Line points={points.count} color="#c43a31" strokeWidth={3} />
+								<Line points={points.count} color={PRIMARY} strokeWidth={3} />
 							)}
 						</CartesianChart>
 					</View>

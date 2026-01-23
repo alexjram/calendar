@@ -1,7 +1,7 @@
-import { View, Modal, StyleSheet, TextInput, Pressable } from "react-native";
-import { BLACK, PRIMARY, WHITE } from "@/constants/Colors";
-import StyledText from "./StyledText";
+import { BLACK, GRAY, PRIMARY, RED, WHITE } from "@/constants/Colors";
 import { useEffect, useState } from "react";
+import { Modal, Pressable, StyleSheet, TextInput, View } from "react-native";
+import StyledText from "./StyledText";
 
 interface Props {
 	visible: boolean
@@ -54,13 +54,16 @@ export default function TaskEditor({ onEdit, onDelete, visible, setVisible, task
 					value={name}
 					onChangeText={text => setName(text)}
 				/>
-				<Pressable style={styles.modalButton} onPress={handleEdit}>
-					<StyledText style={styles.modalButtonText}>Edit</StyledText>
-				</Pressable>
-				<Pressable style={styles.modalButton} onPress={handleDelete}>
-					<StyledText style={styles.modalButtonText}>Delete</StyledText>
-				</Pressable>
-				<Pressable style={styles.modalButton} onPress={handleClose}>
+				<View style={styles.buttonRow}>
+					<Pressable style={{...styles.modalButton, ...styles.buttonRowButton}} onPress={handleEdit}>
+						<StyledText style={styles.modalButtonText}>Edit</StyledText>
+					</Pressable>
+					<Pressable style={{ ...styles.modalButton, backgroundColor: RED, ...styles.buttonRowButton }} onPress={handleDelete}>
+						<StyledText style={styles.modalButtonText}>Delete</StyledText>
+					</Pressable>
+				</View>
+
+				<Pressable style={{...styles.modalButton, backgroundColor: GRAY}} onPress={handleClose}>
 					<StyledText style={styles.modalButtonText}>Cancel</StyledText>
 				</Pressable>
 			</View>
@@ -106,5 +109,14 @@ const styles = StyleSheet.create({
 	modalButtonText: {
 		color: WHITE,
 		fontSize: 20
+	},
+	buttonRow: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		width: '100%',
+		marginTop: 10
+	},
+	buttonRowButton: {
+		width: '48%'
 	}
 })
