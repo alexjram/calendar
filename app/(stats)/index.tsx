@@ -1,10 +1,10 @@
 import StyledText from "@/components/StyledText"
-import { BLACK, WHITE } from "@/constants/Colors"
+import { PRIMARY, WHITE } from "@/constants/Colors"
 import useTasks from "@/hooks/useDB"
 import { HappyMonkey_400Regular } from "@expo-google-fonts/happy-monkey"
 import { useFont } from "@shopify/react-native-skia"
 import { Dispatch, useEffect, useState } from "react"
-import { StyleSheet, TouchableOpacity, View } from "react-native"
+import { ImageBackground, StyleSheet, TouchableOpacity, View } from "react-native"
 import { CartesianChart, Line } from "victory-native"
 
 interface ICountByWeek extends Record<string, unknown> {
@@ -56,60 +56,62 @@ export default function Index() {
 	if (error && !task) return <StyledText>Error: {error?.toString() || 'Unknown error'}</StyledText>
 
 	return (
-		<View style={styles.container}>
-			<StyledText style={styles.title}>Stats</StyledText>
+		<ImageBackground source={require('@/assets/images/bg.jpg')} style={{ flex: 1 }}>
+			<View style={styles.container}>
+				<StyledText style={styles.title}>Stats</StyledText>
 
-			<View style={styles.timeframeContainer}>
-				{(['day', 'week', 'month'] as const).map((t) => (
-					<TouchableOpacity
-						key={t}
-						style={[styles.timeframeButton, timeframe === t && styles.timeframeButtonActive]}
-						onPress={() => setTimeframe(t)}
-					>
-						<StyledText style={[styles.timeframeText, timeframe === t && styles.timeframeTextActive]}>
-							{t.charAt(0).toUpperCase() + t.slice(1)}
-						</StyledText>
-					</TouchableOpacity>
-				))}
-			</View>
-
-			<View style={styles.chartContainer}>
-				{chartData.length > 0 ? (
-					<View style={{ height: 300, width: 500, maxWidth: '100%' }}>
-						<CartesianChart
-							data={chartData}
-							xKey="date"
-							yKeys={["count"]}
-							axisOptions={{
-								font,
-								tickCount: 5,
-								formatXLabel: (xValue: string | number | Date | undefined) => {
-									if (!xValue) return ''
-									if (timeframe === 'week') {
-										const label = String(xValue)
-										const [, week] = label.split('-')
-										return week ? `W${week}` : label
-									}
-
-									const date = new Date(xValue)
-									if (!Number.isNaN(date.getTime()) && timeframe === 'day') {
-										return `${date.getMonth() + 1}/${date.getDate()}`
-									}
-
-									return String(xValue)
-								}
-							}}
+				<View style={styles.timeframeContainer}>
+					{(['day', 'week', 'month'] as const).map((t) => (
+						<TouchableOpacity
+							key={t}
+							style={[styles.timeframeButton, timeframe === t && styles.timeframeButtonActive]}
+							onPress={() => setTimeframe(t)}
 						>
-							{({ points }) => (
-								<Line points={points.count} color="#c43a31" strokeWidth={3} />
-							)}
-						</CartesianChart>
-					</View>
-				) : (
-					<StyledText>No data available for this period</StyledText>
-				)}
+							<StyledText style={[styles.timeframeText, timeframe === t && styles.timeframeTextActive]}>
+								{t.charAt(0).toUpperCase() + t.slice(1)}
+							</StyledText>
+						</TouchableOpacity>
+					))}
+				</View>
+
+				<View style={styles.chartContainer}>
+					{chartData.length > 0 ? (
+						<View style={{ height: 300, width: 500, maxWidth: '100%' }}>
+							<CartesianChart
+								data={chartData}
+								xKey="date"
+								yKeys={["count"]}
+								axisOptions={{
+									font,
+									tickCount: 5,
+									formatXLabel: (xValue: string | number | Date | undefined) => {
+										if (!xValue) return ''
+										if (timeframe === 'week') {
+											const label = String(xValue)
+											const [, week] = label.split('-')
+											return week ? `W${week}` : label
+										}
+
+										const date = new Date(xValue)
+										if (!Number.isNaN(date.getTime()) && timeframe === 'day') {
+											return `${date.getMonth() + 1}/${date.getDate()}`
+										}
+
+										return String(xValue)
+									}
+								}}
+							>
+								{({ points }) => (
+									<Line points={points.count} color={PRIMARY} strokeWidth={3} />
+								)}
+							</CartesianChart>
+						</View>
+					) : (
+						<StyledText>No data available for this period</StyledText>
+					)}
+				</View>
 			</View>
-		</View>
+		</ImageBackground>
 	)
 }
 
@@ -118,10 +120,9 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: "flex-start",
 		alignItems: "center",
-		paddingTop: 50,
+		paddingTop: 80,
 		paddingHorizontal: 20,
 		paddingBottom: 20,
-		backgroundColor: WHITE,
 	},
 	title: {
 		fontSize: 32,
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
 	timeframeContainer: {
 		flexDirection: 'row',
 		marginBottom: 20,
-		backgroundColor: '#f0f0f0',
+		backgroundColor: WHITE,
 		borderRadius: 8,
 		padding: 4
 	},
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
 		borderRadius: 6,
 	},
 	timeframeButtonActive: {
-		backgroundColor: WHITE,
+		backgroundColor: PRIMARY,
 		shadowColor: "#000",
 		shadowOffset: {
 			width: 0,
@@ -160,8 +161,7 @@ const styles = StyleSheet.create({
 		color: '#666'
 	},
 	timeframeTextActive: {
-		color: BLACK,
-		fontWeight: 'bold'
+		color: WHITE,
 	},
 	chartContainer: {
 		alignItems: 'center',

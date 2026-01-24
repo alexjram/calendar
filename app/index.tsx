@@ -5,7 +5,7 @@ import { BLACK, PRIMARY, WHITE } from "@/constants/Colors";
 import useTasks from "@/hooks/useDB";
 import { Checkbox } from 'expo-checkbox';
 import { useState } from "react";
-import { FlatList, Pressable, StyleSheet, View } from "react-native";
+import { FlatList, ImageBackground, Pressable, StyleSheet, View } from "react-native";
 import Toast from 'react-native-toast-message';
 
 export default function Index() {
@@ -17,13 +17,18 @@ export default function Index() {
 		setShowAddAct(true)
 	}
 
-	const handleActChange = async (index: number, value: boolean) => {
+	const handleActChange = async (id: number, value: boolean) => {
 		try {
 			if (value) {
-				await markAsCompleted(tasks[index].id)
+				await markAsCompleted(id)
 			} else {
-				await markAsUncompleted(tasks[index].id)
+				await markAsUncompleted(id)
 			}
+			Toast.show({
+				type: "success",
+				text1: "Success",
+				text2: `Task marked as ${value ? 'completed' : 'incomplete'}`
+			})
 		} catch (error: any) {
 			Toast.show({
 				type: "error",
@@ -99,27 +104,29 @@ export default function Index() {
 		setShowEditAct(true)
 	}
 	return (
-		<View style={styles.container}>
-			<StyledText style={styles.title}>Action Tracker</StyledText>
-			<StyledText style={styles.subtitle}>Today </StyledText>
-			<FlatList
-				style={styles.box}
-				data={tasks}
-				onRefresh={refreshTasks}
-				refreshing={loading}
-				renderItem={({ item, index }) => (
-					<View style={styles.activity} key={index}>
-						<StyledText style={styles.activityTitle} onPress={() => handleSelectAct(item)}>{item.title || 'Untitled'}</StyledText>
-						<Checkbox value={item.hasCompleted > 0} onValueChange={val => handleActChange(index, val)} color={PRIMARY} />
-					</View>
-				)}
-			/>
-			<Pressable style={styles.addActButton} onPress={handleAddActButton}>
-				<StyledText style={styles.addActText}>Add Activity</StyledText>
-			</Pressable>
-			<TaskCreator visible={showAddAct} setVisible={setShowAddAct} onSave={handleAddAct} />
-			{selectedTask && <TaskEditor visible={showEditAct} setVisible={setShowEditAct} onEdit={handleEditAct} onDelete={handleDeleteAct} task={selectedTask} />}
-		</View >
+		<ImageBackground source={require('@/assets/images/bg.jpg')} style={{ flex: 1 }}>
+			<View style={styles.container}>
+				<StyledText style={styles.title}>Action Tracker</StyledText>
+				<StyledText style={styles.subtitle}>Today </StyledText>
+				<FlatList
+					style={styles.box}
+					data={tasks}
+					onRefresh={refreshTasks}
+					refreshing={loading}
+					renderItem={({ item, index }) => (
+						<View style={styles.activity} key={index}>
+							<StyledText style={styles.activityTitle} onPress={() => handleSelectAct(item)}>{item.title || 'Untitled'}</StyledText>
+							<Checkbox value={item.hasCompleted > 0} onValueChange={val => handleActChange(item.id, val)} color={PRIMARY} style={styles.checkbox} />
+						</View>
+					)}
+				/>
+				<Pressable style={styles.addActButton} onPress={handleAddActButton}>
+					<StyledText style={styles.addActText}>Add Activity</StyledText>
+				</Pressable>
+				<TaskCreator visible={showAddAct} setVisible={setShowAddAct} onSave={handleAddAct} />
+				{selectedTask && <TaskEditor visible={showEditAct} setVisible={setShowEditAct} onEdit={handleEditAct} onDelete={handleDeleteAct} task={selectedTask} />}
+			</View >
+		</ImageBackground>
 	)
 }
 
@@ -128,7 +135,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: "flex-start",
 		alignItems: "center",
-		paddingTop: 50,
+		paddingTop: 80,
 		paddingHorizontal: 20,
 		paddingBottom: 20
 	},
@@ -137,16 +144,17 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	subtitle: {
-		marginTop: 75,
+		marginTop: 20,
 		fontSize: 32
 	},
 	box: {
-		borderStyle: 'solid',
-		borderColor: BLACK,
-		borderWidth: 1,
+		//borderStyle: 'solid',
+		//borderColor: BLACK,
+		//borderWidth: 1,
 		width: '100%',
 		marginTop: 20,
-		padding: 10
+		padding: 10,
+		//backgroundColor: WHITE,
 	},
 	activity: {
 		flex: 1,
@@ -170,5 +178,9 @@ const styles = StyleSheet.create({
 	addActText: {
 		color: WHITE,
 		fontSize: 20
+	},
+	checkbox: {
+		width: 24,
+		height: 24,
 	}
 })

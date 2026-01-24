@@ -1,5 +1,6 @@
 import { DBContext } from "@/context/DBContext";
 import { completions, tasks } from "@/db/schema";
+import { getStartAndEndDates, getStartAndEndTimestamps } from "@/services/DateUtils";
 import { sql } from "drizzle-orm";
 import { useCallback, useContext, useEffect, useState } from "react";
 
@@ -12,18 +13,16 @@ export default function useTasks() {
 	const getTasks = useCallback(async () => {
 		if (!db || loading) return
 		setLoading(true)
-		const today = new Date()
-		today.setHours(0, 0, 0, 0)
+		const [startSeconds] = getStartAndEndTimestamps(new Date())
 		try {
 			const res = await db.select({
 				id: tasks.id,
 				title: tasks.title,
 				createdAt: tasks.createdAt,
 				updatedAt: tasks.updatedAt,
-				hasCompleted: sql<number>`EXISTS (SELECT 1 FROM ${completions} WHERE ${completions.completedAt} >= ${today.getTime() / 1000} AND ${completions.taskId} = ${tasks}.${tasks.id})`.as('hasCompleted')
+				hasCompleted: sql<number>`EXISTS (SELECT 1 FROM ${completions} WHERE ${completions.completedAt} >= ${startSeconds} AND ${completions.taskId} = ${tasks}.${tasks.id})`.as('hasCompleted')
 			}).from(tasks).orderBy(tasks.title)
 			setTasks(res)
-
 		} catch (e: any) {
 			setError(e.message)
 			console.error(e)
@@ -39,8 +38,8 @@ export default function useTasks() {
 	const getTaskHistory = useCallback(async (start: Date, end: Date) => {
 		if (!db || loading) return
 		setLoading(true)
-		const today = new Date()
-		today.setHours(0, 0, 0, 0)
+		const [startSeconds] = getStartAndEndTimestamps(start)
+		const [_, endSeconds] = getStartAndEndTimestamps(end)
 		let res: ITask[] = []
 		try {
 			res = await db.select({
@@ -48,7 +47,7 @@ export default function useTasks() {
 				title: tasks.title,
 				createdAt: tasks.createdAt,
 				updatedAt: tasks.updatedAt,
-				hasCompleted: sql<number>`EXISTS (SELECT 1 FROM ${completions} WHERE ${completions.completedAt} >= ${start.getTime() / 1000} AND ${completions.completedAt} < ${end.getTime() / 1000} AND ${completions.taskId} = ${tasks}.${tasks.id})`.as('hasCompleted')
+				hasCompleted: sql<number>`EXISTS (SELECT 1 FROM ${completions} WHERE ${completions.completedAt} >= ${startSeconds} AND ${completions.completedAt} < ${endSeconds} AND ${completions.taskId} = ${tasks}.${tasks.id})`.as('hasCompleted')
 			}).from(tasks).where(sql`${tasks.createdAt} <= ${end.getTime() / 1000}`).orderBy(tasks.title)
 		} catch (e: any) {
 			setError(e.message)
@@ -63,11 +62,11 @@ export default function useTasks() {
 		if (!db || loading) return
 		setLoading(true)
 		const today = new Date()
-		today.setHours(0, 0, 0, 0)
 		const lastMonth = new Date()
 		lastMonth.setMonth(today.getMonth() - 1)
-		lastMonth.setHours(0, 0, 0, 0)
 		lastMonth.setDate(1)
+		const [startSeconds] = getStartAndEndTimestamps(lastMonth)
+		const [_, endSeconds] = getStartAndEndTimestamps(today)
 		try {
 			const res = await db
 				.select({
@@ -77,7 +76,7 @@ export default function useTasks() {
 					title: tasks.title,
 				})
 				.from(tasks).leftJoin(completions, sql`${tasks.id} = ${completions.taskId}`)
-				.where(sql`${completions.completedAt} >= ${(today.getTime()) / 1000 - (lastMonth.getTime() / 1000)}`)
+				.where(sql`${completions.completedAt} >= ${startSeconds} AND ${completions.completedAt} <= ${endSeconds}`)
 				.groupBy(sql`${tasks.id}, strftime('%Y-%W', (${completions.completedAt}))`)
 				.orderBy(sql`${tasks.createdAt}`)
 			return res
@@ -115,7 +114,7 @@ export default function useTasks() {
 			await db.insert(completions).values({ taskId: id, completedAt: new Date(), updatedAt: new Date() })
 		}
 		await getTasks()
-	}, [db])
+	}, [db, dbTasks])
 
 	const markAsUncompleted = useCallback(async (id: number) => {
 		if (!db) return
@@ -126,41 +125,59 @@ export default function useTasks() {
 			await db.delete(completions).where(sql`${completions.taskId} = ${id} AND ${completions.completedAt} >= ${today.getTime() / 1000}`)
 		}
 		await getTasks()
-	}, [db])
+	}, [db, dbTasks])
 
 	const getCompletionStats = useCallback(async (timeframe: 'day' | 'week' | 'month') => {
 		if (!db || loading) return
 		setLoading(true)
 		const today = new Date()
-		today.setHours(0, 0, 0, 0)
 
-		// Determine start date based on timeframe
-		const startDate = new Date()
-		startDate.setHours(0, 0, 0, 0)
+		const [startDate] = getStartAndEndDates(today)
 
 		if (timeframe === 'day') {
-			startDate.setDate(today.getDate() - 30) // Last 30 days
+			startDate.setDate(today.getDate() - 30)
 		} else if (timeframe === 'week') {
-			startDate.setMonth(today.getMonth() - 3) // Last 3 months (approx 12 weeks)
+			startDate.setMonth(today.getMonth() - 3)
 		} else if (timeframe === 'month') {
-			startDate.setFullYear(today.getFullYear() - 1) // Last 1 year
+			startDate.setFullYear(today.getFullYear() - 1)
 		}
 
 		try {
 			let dateFormat = ''
-			if (timeframe === 'day') dateFormat = '%Y-%m-%d'
-			if (timeframe === 'week') dateFormat = '%Y-%W'
-			if (timeframe === 'month') dateFormat = '%Y-%m'
+			let dateIncrementDays = 1
+			if (timeframe === 'day') {
+				dateFormat = '%Y-%m-%d'
+				dateIncrementDays = 1
+			} else if (timeframe === 'week') {
+				dateFormat = '%Y-%W'
+				dateIncrementDays = 7
+			} else if (timeframe === 'month') {
+				dateFormat = '%Y-%m'
+				dateIncrementDays = 30
+			}
+
+			const dates: string[] = []
+			const current = new Date(startDate)
+			const end = new Date(today)
+			while (current <= end) {
+				dates.push(current.toISOString().split('T')[0])
+				current.setDate(current.getDate() + dateIncrementDays)
+			}
+
+			if (dates.length === 0) return []
+
+			const dateSeriesCTE = dates.map(d => `SELECT '${d}' AS date`).join(' UNION ALL ')
+			const dateSeriesQuery = `WITH dates(date) AS (${dateSeriesCTE}) SELECT * FROM dates`
 
 			const res = await db
 				.select({
-					count: sql<number>`COUNT(${completions.id})`,
-					date: sql<string>`strftime(${dateFormat}, ${completions.completedAt}, 'unixepoch', 'localtime')`.as('date')
+					count: sql<number>`COALESCE(COUNT(${completions.id}), 0)`,
+					date: sql<string>`d.date`.as('date')
 				})
-				.from(completions)
-				.where(sql`${completions.completedAt} >= ${startDate.getTime() / 1000}`)
-				.groupBy(sql`strftime(${dateFormat}, ${completions.completedAt}, 'unixepoch', 'localtime')`)
-				.orderBy(sql`date`)
+				.from(sql`(${sql.raw(dateSeriesQuery)}) AS d`)
+				.leftJoin(completions, sql`strftime(${dateFormat}, ${completions.completedAt}, 'unixepoch', 'localtime') = d.date`)
+				.groupBy(sql`d.date`)
+				.orderBy(sql`d.date`)
 
 			return res
 		} catch (e: any) {
@@ -170,6 +187,13 @@ export default function useTasks() {
 		} finally {
 			setLoading(false)
 		}
+	}, [db])
+
+	const getEarliestTaskCreationDate = useCallback(async (): Promise<Date | null> => {
+		if (!db) return null
+		const res = await db.select({ createdAt: tasks.createdAt }).from(tasks).orderBy(tasks.createdAt).limit(1)
+		if (res.length === 0) return null
+		return res[0].createdAt
 	}, [db])
 
 	return {
@@ -184,6 +208,7 @@ export default function useTasks() {
 		markAsUncompleted,
 		getTaskHistory,
 		getCountByWeek,
-		getCompletionStats
+		getCompletionStats,
+		getEarliestTaskCreationDate
 	}
 }

@@ -1,8 +1,9 @@
-import { BLACK, PRIMARY, WHITE } from "@/constants/Colors";
+import { BLACK, PRIMARY, RED, WHITE } from "@/constants/Colors";
 import useTasks from "@/hooks/useDB";
 import { useEffect, useState } from "react";
 import { FlatList, Modal, Pressable, StyleSheet, View } from "react-native";
 import StyledText from "./StyledText";
+import { getStartAndEndDates } from "@/services/DateUtils";
 
 interface Props {
 	visible: boolean
@@ -14,10 +15,7 @@ export default function CompletionModal({ day, visible, setVisible }: Props) {
 	const { getTaskHistory } = useTasks()
 	useEffect(() => {
 		setTasks([])
-		const start = new Date(day.toISOString())
-		const end = new Date(day.toISOString())
-		start.setHours(0, 0, 0, 0)
-		end.setHours(23, 59, 59, 999)
+		const [start, end] = getStartAndEndDates(day)
 
 		getTaskHistory(start, end).then(tasks => {
 			if (tasks) {
@@ -43,7 +41,8 @@ export default function CompletionModal({ day, visible, setVisible }: Props) {
 					data={tasks}
 					renderItem={({ item }) => (
 						<View style={styles.modalItemContainer}>
-							<StyledText style={styles.modalItem}>{item.title || 'Untitled'} - {item.hasCompleted ? "Completed" : "Incomplete"}</StyledText>
+							<StyledText style={styles.modalItem}>{item.title || 'Untitled'}</StyledText>
+							<StyledText style={{ ...styles.modalItem, color: item.hasCompleted ? PRIMARY : RED }}>{item.hasCompleted ? 'Yes' : 'No'}</StyledText>
 						</View>
 					)}
 					style={styles.modalList}
@@ -107,6 +106,9 @@ const styles = StyleSheet.create({
 		color: BLACK
 	},
 	modalItemContainer: {
-		marginVertical: 5
+		justifyContent: "space-between",
+		marginVertical: 5,
+		flexDirection: "row",
+		alignItems: "center",
 	}
 })

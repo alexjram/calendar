@@ -1,7 +1,7 @@
-import { View, Modal, StyleSheet, TextInput, Pressable } from "react-native";
-import { BLACK, PRIMARY, WHITE } from "@/constants/Colors";
-import StyledText from "./StyledText";
+import { BLACK, GRAY, PRIMARY, WHITE } from "@/constants/Colors";
 import { useState } from "react";
+import { Modal, Pressable, StyleSheet, TextInput, View } from "react-native";
+import StyledText from "./StyledText";
 
 interface Props {
 	visible: boolean
@@ -42,7 +42,7 @@ export default function TaskCreator({ onSave, visible, setVisible }: Props) {
 				<Pressable style={styles.modalButton} onPress={handleSave}>
 					<StyledText style={styles.modalButtonText}>Save</StyledText>
 				</Pressable>
-				<Pressable style={styles.modalButton} onPress={handleClose}>
+				<Pressable style={{...styles.modalButton, backgroundColor: GRAY}} onPress={handleClose}>
 					<StyledText style={styles.modalButtonText}>Cancel</StyledText>
 				</Pressable>
 			</View>
