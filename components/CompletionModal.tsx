@@ -36,7 +36,7 @@ export default function CompletionModal({ day, visible, setVisible }: Props) {
 			style={{ margin: 0 }}
 		>
 			<View style={styles.modalContainer}>
-				<StyledText style={styles.modalTitle}>Day: {day.toISOString()}</StyledText>
+				<StyledText style={styles.modalTitle}>Day: {day.toLocaleDateString()}</StyledText>
 				<FlatList
 					data={tasks}
 					renderItem={({ item }) => (
