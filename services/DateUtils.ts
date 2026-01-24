@@ -1,8 +1,8 @@
 
 
 export const getStartAndEndDates = (date: Date) => {
-	const start = new Date(date.toISOString())
-	const end = new Date(date.toISOString())
+	const start = new Date(date.getTime())
+	const end = new Date(date.getTime())
 	start.setHours(0, 0, 0, 0)
 	end.setHours(23, 59, 59, 999)
 	return [start, end]

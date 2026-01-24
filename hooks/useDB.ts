@@ -23,7 +23,6 @@ export default function useTasks() {
 				hasCompleted: sql<number>`EXISTS (SELECT 1 FROM ${completions} WHERE ${completions.completedAt} >= ${startSeconds} AND ${completions.taskId} = ${tasks}.${tasks.id})`.as('hasCompleted')
 			}).from(tasks).orderBy(tasks.title)
 			setTasks(res)
-			console.log("Fetched tasks:", res)
 		} catch (e: any) {
 			setError(e.message)
 			console.error(e)
@@ -115,7 +114,7 @@ export default function useTasks() {
 			await db.insert(completions).values({ taskId: id, completedAt: new Date(), updatedAt: new Date() })
 		}
 		await getTasks()
-	}, [db])
+	}, [db, dbTasks])
 
 	const markAsUncompleted = useCallback(async (id: number) => {
 		if (!db) return
@@ -126,7 +125,7 @@ export default function useTasks() {
 			await db.delete(completions).where(sql`${completions.taskId} = ${id} AND ${completions.completedAt} >= ${today.getTime() / 1000}`)
 		}
 		await getTasks()
-	}, [db])
+	}, [db, dbTasks])
 
 	const getCompletionStats = useCallback(async (timeframe: 'day' | 'week' | 'month') => {
 		if (!db || loading) return
@@ -190,6 +189,13 @@ export default function useTasks() {
 		}
 	}, [db])
 
+	const getEarliestTaskCreationDate = useCallback(async (): Promise<Date | null> => {
+		if (!db) return null
+		const res = await db.select({ createdAt: tasks.createdAt }).from(tasks).orderBy(tasks.createdAt).limit(1)
+		if (res.length === 0) return null
+		return res[0].createdAt
+	}, [db])
+
 	return {
 		tasks: dbTasks,
 		loading,
@@ -202,6 +208,7 @@ export default function useTasks() {
 		markAsUncompleted,
 		getTaskHistory,
 		getCountByWeek,
-		getCompletionStats
+		getCompletionStats,
+		getEarliestTaskCreationDate
 	}
 }
