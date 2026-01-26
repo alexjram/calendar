@@ -3,37 +3,21 @@ import { PRIMARY, WHITE } from "@/constants/Colors"
 import useTasks from "@/hooks/useDB"
 import { HappyMonkey_400Regular } from "@expo-google-fonts/happy-monkey"
 import { useFont } from "@shopify/react-native-skia"
-import { Dispatch, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { ImageBackground, StyleSheet, TouchableOpacity, View } from "react-native"
 import { CartesianChart, Line } from "victory-native"
 
-interface ICountByWeek extends Record<string, unknown> {
-	count: number
-	week: string
-	id: number
-	title: string
-}
-
 interface IChartData extends Record<string, unknown> {
 	date: string
-	count: number
+	completed: number
 }
 
 export default function Index() {
-	const [open, setOpen] = useState(false)
-	const [task, setTask] = useState<ITask | null>(null)
-	const { tasks, loading, error, getCountByWeek, getCompletionStats } = useTasks()
-	const [countByWeek, setCountByWeek] = useState<ICountByWeek[]>([])
+	const { loading, error, getCompletionStats } = useTasks()
 	const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month'>('day')
 	const [chartData, setChartData] = useState<IChartData[]>([])
 	const font = useFont(HappyMonkey_400Regular, 12)
 
-	const handleSelect: Dispatch<any> = (item: string) => {
-		if (!tasks) return
-		let selectedTask = tasks.find(t => t.id === Number(item))
-		if (!selectedTask) return
-		setTask(selectedTask)
-	}
 
 	useEffect(() => {
 		getCompletionStats(timeframe).then(data => {
@@ -43,17 +27,9 @@ export default function Index() {
 		})
 	}, [timeframe, getCompletionStats])
 
-	useEffect(() => {
-		if (!task) return
-		getCountByWeek().then(counts => {
-			if (counts) {
-				setCountByWeek(counts)
-			}
-		})
-	}, [task])
 
-	if ((loading && !task && chartData.length === 0) || !font) return <StyledText>Loading...</StyledText>
-	if (error && !task) return <StyledText>Error: {error?.toString() || 'Unknown error'}</StyledText>
+	if ((loading && chartData.length === 0) || !font) return <StyledText>Loading...</StyledText>
+	if (error) return <StyledText>Error: {error?.toString() || 'Unknown error'}</StyledText>
 
 	return (
 		<ImageBackground source={require('@/assets/images/bg.jpg')} style={{ flex: 1 }}>
@@ -68,7 +44,7 @@ export default function Index() {
 							onPress={() => setTimeframe(t)}
 						>
 							<StyledText style={[styles.timeframeText, timeframe === t && styles.timeframeTextActive]}>
-								{t.charAt(0).toUpperCase() + t.slice(1)}
+								{t}
 							</StyledText>
 						</TouchableOpacity>
 					))}
@@ -76,11 +52,11 @@ export default function Index() {
 
 				<View style={styles.chartContainer}>
 					{chartData.length > 0 ? (
-						<View style={{ height: 300, width: 500, maxWidth: '100%' }}>
+						<View style={{ height: 500, width: 500, maxWidth: '100%' }}>
 							<CartesianChart
 								data={chartData}
 								xKey="date"
-								yKeys={["count"]}
+								yKeys={["completed"]}
 								axisOptions={{
 									font,
 									tickCount: 5,
@@ -92,17 +68,12 @@ export default function Index() {
 											return week ? `W${week}` : label
 										}
 
-										const date = new Date(xValue)
-										if (!Number.isNaN(date.getTime()) && timeframe === 'day') {
-											return `${date.getMonth() + 1}/${date.getDate()}`
-										}
-
 										return String(xValue)
 									}
 								}}
 							>
 								{({ points }) => (
-									<Line points={points.count} color={PRIMARY} strokeWidth={3} />
+									<Line points={points.completed} color={PRIMARY} strokeWidth={3} />
 								)}
 							</CartesianChart>
 						</View>
@@ -158,7 +129,8 @@ const styles = StyleSheet.create({
 		elevation: 2,
 	},
 	timeframeText: {
-		color: '#666'
+		color: '#666',
+		textTransform: 'capitalize'
 	},
 	timeframeTextActive: {
 		color: WHITE,

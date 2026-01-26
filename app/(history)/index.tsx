@@ -3,7 +3,7 @@ import StyledText from "@/components/StyledText"
 import { PRIMARY, WHITE } from "@/constants/Colors"
 import useTasks from "@/hooks/useDB"
 import { useEffect, useState } from "react"
-import { ImageBackground, NativeModules, StyleSheet, View } from "react-native"
+import { ImageBackground, StyleSheet, View } from "react-native"
 import { Calendar } from 'react-native-calendars'
 export default function Index() {
 	const [visible, setVisible] = useState(false)

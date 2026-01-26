@@ -3,6 +3,7 @@ import { completions, tasks } from "@/db/schema";
 import { getStartAndEndDates, getStartAndEndTimestamps } from "@/services/DateUtils";
 import { sql } from "drizzle-orm";
 import { useCallback, useContext, useEffect, useState } from "react";
+import dayjs from "dayjs";
 
 
 export default function useTasks() {
@@ -127,59 +128,63 @@ export default function useTasks() {
 		await getTasks()
 	}, [db, dbTasks])
 
-	const getCompletionStats = useCallback(async (timeframe: 'day' | 'week' | 'month') => {
-		if (!db || loading) return
+	const getCompletionStats = useCallback(async (timeframe: 'day' | 'week' | 'month'): Promise<{ date: string, completed: number }[] | null> => {
+		if (!db || loading) return null
 		setLoading(true)
-		const today = new Date()
-
-		const [startDate] = getStartAndEndDates(today)
-
-		if (timeframe === 'day') {
-			startDate.setDate(today.getDate() - 30)
-		} else if (timeframe === 'week') {
-			startDate.setMonth(today.getMonth() - 3)
-		} else if (timeframe === 'month') {
-			startDate.setFullYear(today.getFullYear() - 1)
-		}
-
 		try {
-			let dateFormat = ''
-			let dateIncrementDays = 1
-			if (timeframe === 'day') {
-				dateFormat = '%Y-%m-%d'
-				dateIncrementDays = 1
-			} else if (timeframe === 'week') {
-				dateFormat = '%Y-%W'
-				dateIncrementDays = 7
-			} else if (timeframe === 'month') {
-				dateFormat = '%Y-%m'
-				dateIncrementDays = 30
+			const today = new Date()
+			const [_, end] = getStartAndEndTimestamps(today)
+			let start: number
+			let format: string
+			let jsFormat: string
+			let tmp: Date
+			switch (timeframe) {
+				case 'day':
+					tmp = new Date()
+					tmp.setDate(tmp.getDate() - 30)
+					start = getStartAndEndTimestamps(tmp)[0]
+					format = '%m-%d'
+					jsFormat = 'MM-DD'
+					break
+				case 'week':
+					tmp = new Date()
+					tmp.setDate(1)
+					tmp.setMonth(tmp.getMonth() - 3)
+					start = getStartAndEndTimestamps(tmp)[0]
+					format = '%Y-%W'
+					jsFormat = 'YYYY-WW'
+					break
+				case 'month':
+					tmp = new Date()
+					tmp.setDate(1)
+					tmp.setFullYear(tmp.getFullYear() - 1)
+					start = getStartAndEndTimestamps(tmp)[0]
+					format = '%Y-%m'
+					jsFormat = 'YYYY-MM'
+					break
 			}
-
-			const dates: string[] = []
-			const current = new Date(startDate)
-			const end = new Date(today)
-			while (current <= end) {
-				dates.push(current.toISOString().split('T')[0])
-				current.setDate(current.getDate() + dateIncrementDays)
-			}
-
-			if (dates.length === 0) return []
-
-			const dateSeriesCTE = dates.map(d => `SELECT '${d}' AS date`).join(' UNION ALL ')
-			const dateSeriesQuery = `WITH dates(date) AS (${dateSeriesCTE}) SELECT * FROM dates`
-
 			const res = await db
 				.select({
-					count: sql<number>`COALESCE(COUNT(${completions.id}), 0)`,
-					date: sql<string>`d.date`.as('date')
+					completed: sql<number>`COUNT(${completions.id})`.as('completed'),
+					date: sql<string>`strftime(${format}, ${completions.completedAt}, 'unixepoch', 'localtime')`.as('date')
 				})
-				.from(sql`(${sql.raw(dateSeriesQuery)}) AS d`)
-				.leftJoin(completions, sql`strftime(${dateFormat}, ${completions.completedAt}, 'unixepoch', 'localtime') = d.date`)
-				.groupBy(sql`d.date`)
-				.orderBy(sql`d.date`)
-
-			return res
+				.from(completions)
+				.where(sql`${completions.completedAt} >= ${start} AND ${completions.completedAt} <= ${end}`)
+				.groupBy(sql`strftime(${format}, ${completions.completedAt}, 'unixepoch', 'localtime')`)
+			const fullResponse: { date: string, completed: number }[] = []
+			let startDate = dayjs(new Date(start * 1000))
+			let endDate = dayjs(new Date(end * 1000))
+			let date = startDate.clone()
+			const resMap = new Map<string, { date: string, completed: number }>(res.map(r => [r.date, r]))
+			while (date.isBefore(endDate) || date.isSame(endDate)) {
+				if (resMap.has(date.format(jsFormat))) {
+					fullResponse.push({ date: date.format(jsFormat), completed: resMap.get(date.format(jsFormat))?.completed ?? 0 })
+				} else {
+					fullResponse.push({ date: date.format(jsFormat), completed: 0 })
+				}
+				date = date.add(1, timeframe)
+			}
+			return fullResponse
 		} catch (e: any) {
 			setError(e.message)
 			console.error(e)
