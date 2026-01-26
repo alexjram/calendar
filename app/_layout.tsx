@@ -13,25 +13,31 @@ import { DBProvider } from "@/context/DBContext";
 import { View } from "react-native";
 import StyledText from "@/components/StyledText";
 import * as Sentry from '@sentry/react-native';
+import dayjs from "dayjs";
+import advancedformat from "dayjs/plugin/advancedFormat";
+import isoWeek from "dayjs/plugin/isoWeek";
 
 Sentry.init({
-  dsn: 'https://fb8e5e590241a7d2d9da8be7943796d0@o4510761183674368.ingest.us.sentry.io/4510761184395264',
+	dsn: 'https://fb8e5e590241a7d2d9da8be7943796d0@o4510761183674368.ingest.us.sentry.io/4510761184395264',
 
-  // Adds more context data to events (IP address, cookies, user, etc.)
-  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
-  sendDefaultPii: true,
+	// Adds more context data to events (IP address, cookies, user, etc.)
+	// For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+	sendDefaultPii: true,
 
-  // Enable Logs
-  enableLogs: true,
+	// Enable Logs
+	enableLogs: true,
 
-  // Configure Session Replay
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1,
-  integrations: [Sentry.mobileReplayIntegration()],
+	// Configure Session Replay
+	replaysSessionSampleRate: 0.1,
+	replaysOnErrorSampleRate: 1,
+	integrations: [Sentry.mobileReplayIntegration()],
 
-  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
-  // spotlight: __DEV__,
+	// uncomment the line below to enable Spotlight (https://spotlightjs.com)
+	// spotlight: __DEV__,
 });
+
+dayjs.extend(advancedformat)
+dayjs.extend(isoWeek)
 
 const expo = SQLite.openDatabaseSync('db.sqlite');
 const db = drizzle(expo);

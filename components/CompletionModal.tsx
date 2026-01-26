@@ -22,7 +22,7 @@ export default function CompletionModal({ day, visible, setVisible }: Props) {
 				setTasks(tasks)
 			}
 		})
-	}, [day])
+	}, [day, getTaskHistory])
 	const handleClose = () => {
 		setTasks([])
 		setVisible(false)
