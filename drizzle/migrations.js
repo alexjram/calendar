@@ -4,13 +4,15 @@ import journal from './meta/_journal.json';
 import m0000 from './0000_natural_madame_web.sql';
 import m0002 from './0002_flaky_epoch.sql';
 import m0003 from './0003_perfect_black_panther.sql';
+import m0004 from './0004_pretty_morph.sql';
 
   export default {
     journal,
     migrations: {
       m0000,
 m0002,
-m0003
+m0003,
+m0004
     }
   }
   
