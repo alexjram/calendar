@@ -3,6 +3,7 @@ import TaskCreator from "@/components/TaskCreator";
 import TaskEditor from "@/components/TaskEditor";
 import { BLACK, PRIMARY, WHITE } from "@/constants/Colors";
 import useTasks from "@/hooks/useDB";
+import { getIfRewardAchieved } from "@/services/TaskUtils";
 import { Checkbox } from "expo-checkbox";
 import { useState } from "react";
 import {
@@ -25,6 +26,8 @@ export default function Index() {
     deleteTask,
     getTasks,
     markAsFullyCompleted,
+    saveAward,
+    removeLastAward,
   } = useTasks();
   const [showAddAct, setShowAddAct] = useState<boolean>(false);
   const [showEditAct, setShowEditAct] = useState<boolean>(false);
@@ -33,12 +36,22 @@ export default function Index() {
     setShowAddAct(true);
   };
 
-  const handleActChange = async (id: number, value: boolean) => {
+  const handleActChange = async (task: ITask, value: boolean) => {
     try {
       if (value) {
-        await markAsCompleted(id);
+        await markAsCompleted(task.id);
+        task.totalCount++;
+        if (getIfRewardAchieved(task)) {
+          saveAward({
+            taskId: task.id,
+            rewardNumber: task.rewardCount + 1,
+          });
+        }
       } else {
-        await markAsUncompleted(id);
+        await markAsUncompleted(task.id);
+        if (getIfRewardAchieved(task)) {
+          removeLastAward(task.id);
+        }
       }
       Toast.show({
         type: "success",
@@ -169,7 +182,7 @@ export default function Index() {
               </StyledText>
               <Checkbox
                 value={item.hasCompleted > 0}
-                onValueChange={(val) => handleActChange(item.id, val)}
+                onValueChange={(val) => handleActChange(item, val)}
                 color={PRIMARY}
                 style={styles.checkbox}
               />

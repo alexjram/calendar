@@ -66,7 +66,6 @@ export default function TaskCreator({ onSave, visible, setVisible }: Props) {
     }
   };
   const handleTypeChange = (value: string) => {
-    console.log(value);
     if (value && items.findIndex((i) => i.value === value) !== -1)
       setType(value as typeof type);
   };
@@ -152,7 +151,7 @@ export default function TaskCreator({ onSave, visible, setVisible }: Props) {
             />
             <TextInput
               style={styles.modalInput}
-              placeholder="when should the price be given"
+              placeholder="whe should the price be given"
               value={rewardWhen}
               onChangeText={(text) => setRewardWhen(text)}
             />

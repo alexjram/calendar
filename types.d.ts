@@ -26,4 +26,12 @@ interface ITask extends ITaskBase {
   weekWeekdayCount: number;
   weekWeekendCount: number;
   monthCount: number;
+  rewardCount: number;
+}
+
+interface IAward {
+  id?: number;
+  taskId: number;
+  rewardNumber: number;
+  rewardedAt?: Date;
 }

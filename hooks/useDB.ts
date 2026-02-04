@@ -1,5 +1,5 @@
 import { DBContext } from "@/context/DBContext";
-import { completions, tasks } from "@/db/schema";
+import { completions, rewards, tasks } from "@/db/schema";
 import { getStartAndEndTimestamps } from "@/services/DateUtils";
 import { sql } from "drizzle-orm";
 import { useCallback, useContext, useEffect, useState } from "react";
@@ -60,6 +60,10 @@ export default function useTasks() {
           hasCompleted:
             sql<number>`(SELECT COUNT(*) FROM ${completions} WHERE ${completions.taskId} = ${tasks.id} AND ${completions.completedAt} >= ${todayStart} AND ${completions.completedAt} <= ${todayEnd})`.as(
               "hasCompleted",
+            ),
+          rewardCount:
+            sql<number>`(SELECT COUNT(*) FROM ${rewards} WHERE ${rewards.taskId} = ${tasks.id})`.as(
+              "rewardCount",
             ),
         })
         .from(tasks)
@@ -155,6 +159,10 @@ export default function useTasks() {
             weekWeekdayCount: sql<number>`0`.as("weekWeekdayCount"),
             weekWeekendCount: sql<number>`0`.as("weekWeekendCount"),
             monthCount: sql<number>`0`.as("monthCount"),
+            rewardCount:
+              sql<number>`(SELECT COUNT(*) FROM ${rewards} WHERE ${rewards.rewardedAt} BETWEEN ${startSeconds} AND ${endSeconds})`.as(
+                "rewardCount",
+              ),
           })
           .from(tasks)
           .where(sql`${tasks.createdAt} <= ${end.getTime() / 1000}`)
@@ -288,6 +296,28 @@ export default function useTasks() {
     },
     [db, getTasks],
   );
+  const saveAward = useCallback(
+    async (award: IAward) => {
+      if (!db) return;
+
+      await db.insert(rewards).values({ ...award, rewardedAt: new Date() });
+      await getTasks();
+    },
+    [db],
+  );
+  const removeLastAward = useCallback(
+    async (taskId: number) => {
+      if (!db) return;
+
+      await db
+        .delete(rewards)
+        .where(
+          sql`${rewards.id} = (SELECT MAX(${rewards.id}) FROM ${rewards} WHERE ${rewards.taskId} = ${taskId})`,
+        );
+      await getTasks();
+    },
+    [db, getTasks],
+  );
 
   const getCompletionStats = useCallback(
     async (
@@ -398,5 +428,7 @@ export default function useTasks() {
     getCountByWeek,
     getCompletionStats,
     getEarliestTaskCreationDate,
+    saveAward,
+    removeLastAward,
   };
 }

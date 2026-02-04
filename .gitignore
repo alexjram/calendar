@@ -43,3 +43,6 @@ app-example
 /android
 
 .env.local
+
+# tests cache and results
+coverage/

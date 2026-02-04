@@ -16,11 +16,16 @@ export const getStartAndEndTimestamps = (date: Date) => {
 export const getWeekStartAndEnd = (date: Date) => {
 	const d = new Date(date)
 	const day = d.getDay()
-	const diff = d.getDate() - day + (day === 0 ? -6 : 1)
-	const start = new Date(d.setDate(diff))
+	// Calculate Monday (day 1) of the week
+	// For Sunday (day 0): go back 6 days
+	// For Monday-Friday (day 1-5): go back (day - 1) days
+	// For Saturday (day 6): go back 5 days
+	const diff = day === 0 ? -6 : 1 - day
+	const start = new Date(d)
+	start.setDate(d.getDate() + diff)
 	start.setHours(0, 0, 0, 0)
 	const end = new Date(start)
-	end.setDate(end.getDate() + 6)
+	end.setDate(start.getDate() + 6)
 	end.setHours(23, 59, 59, 999)
 	return [start, end]
 }

@@ -43,7 +43,6 @@ const expo = SQLite.openDatabaseSync("db.sqlite");
 const db = drizzle(expo);
 
 export default Sentry.wrap(function RootLayout() {
-  console.log("this thing bitch");
   const { success, error } = useMigrations(db, migrations);
   let [fontsLoaded] = useFonts({
     HappyMonkey_400Regular,
