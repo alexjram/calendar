@@ -1,18 +1,14 @@
+import ScreenWrapper from "@/components/ScreenWrapper";
 import StyledText from "@/components/StyledText";
 import TaskCreator from "@/components/TaskCreator";
 import TaskEditor from "@/components/TaskEditor";
 import { BLACK, PRIMARY, WHITE } from "@/constants/Colors";
-import useTasks from "@/hooks/useDB";
+import useRewards from "@/hooks/useRewards";
+import useTodayTasks from "@/hooks/useTodayTasks";
 import { getIfRewardAchieved } from "@/services/TaskUtils";
 import { Checkbox } from "expo-checkbox";
 import { useState } from "react";
-import {
-  FlatList,
-  ImageBackground,
-  Pressable,
-  StyleSheet,
-  View,
-} from "react-native";
+import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import Toast from "react-native-toast-message";
 
 export default function Index() {
@@ -26,9 +22,8 @@ export default function Index() {
     deleteTask,
     getTasks,
     markAsFullyCompleted,
-    saveAward,
-    removeLastAward,
-  } = useTasks();
+  } = useTodayTasks();
+  const { saveAward, removeLastAward } = useRewards();
   const [showAddAct, setShowAddAct] = useState<boolean>(false);
   const [showEditAct, setShowEditAct] = useState<boolean>(false);
   const [selectedTask, setSelectedTask] = useState<ITask | null>(null);
@@ -160,71 +155,53 @@ export default function Index() {
     }
   };
   return (
-    <ImageBackground
-      source={require("@/assets/images/bg.jpg")}
-      style={{ flex: 1 }}
-    >
-      <View style={styles.container}>
-        <StyledText style={styles.title}>Action Tracker</StyledText>
-        <StyledText style={styles.subtitle}>Today </StyledText>
-        <FlatList
-          style={styles.box}
-          data={tasks}
-          onRefresh={refreshTasks}
-          refreshing={loading}
-          renderItem={({ item, index }) => (
-            <View style={styles.activity} key={index}>
-              <StyledText
-                style={styles.activityTitle}
-                onPress={() => handleSelectAct(item)}
-              >
-                {item.title || "Untitled"}
-              </StyledText>
-              <Checkbox
-                value={item.hasCompleted > 0}
-                onValueChange={(val) => handleActChange(item, val)}
-                color={PRIMARY}
-                style={styles.checkbox}
-              />
-            </View>
-          )}
-        />
-        <Pressable style={styles.addActButton} onPress={handleAddActButton}>
-          <StyledText style={styles.addActText}>Add Activity</StyledText>
-        </Pressable>
-        <TaskCreator
-          visible={showAddAct}
-          setVisible={setShowAddAct}
-          onSave={handleAddAct}
-        />
-        {selectedTask && (
-          <TaskEditor
-            visible={showEditAct}
-            setVisible={setShowEditAct}
-            onEdit={handleEditAct}
-            onDelete={handleDeleteAct}
-            onComplete={handleCompleteAct}
-            task={selectedTask}
-          />
+    <ScreenWrapper title="Action Tracker">
+      <StyledText style={styles.subtitle}>Today </StyledText>
+      <FlatList
+        style={styles.box}
+        data={tasks}
+        onRefresh={refreshTasks}
+        refreshing={loading}
+        renderItem={({ item }) => (
+          <View style={styles.activity} key={item.id}>
+            <StyledText
+              style={styles.activityTitle}
+              onPress={() => handleSelectAct(item)}
+            >
+              {item.title || "Untitled"}
+            </StyledText>
+            <Checkbox
+              value={item.hasCompleted > 0}
+              onValueChange={(val) => handleActChange(item, val)}
+              color={PRIMARY}
+              style={styles.checkbox}
+            />
+          </View>
         )}
-      </View>
-    </ImageBackground>
+      />
+      <Pressable style={styles.addActButton} onPress={handleAddActButton}>
+        <StyledText style={styles.addActText}>Add Activity</StyledText>
+      </Pressable>
+      <TaskCreator
+        visible={showAddAct}
+        setVisible={setShowAddAct}
+        onSave={handleAddAct}
+      />
+      {selectedTask && (
+        <TaskEditor
+          visible={showEditAct}
+          setVisible={setShowEditAct}
+          onEdit={handleEditAct}
+          onDelete={handleDeleteAct}
+          onComplete={handleCompleteAct}
+          task={selectedTask}
+        />
+      )}
+    </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "flex-start",
-    alignItems: "center",
-    paddingTop: 80,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  title: {
-    fontSize: 48,
-    textAlign: "center",
-  },
   subtitle: {
     marginTop: 20,
     fontSize: 32,

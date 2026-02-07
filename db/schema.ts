@@ -35,7 +35,8 @@ export const completions = sqliteTable("completions", {
 export const rewards = sqliteTable("rewards", {
   id: integer("id").primaryKey(),
   rewardNumber: integer().notNull(),
-  rewardedAt: integer({ mode: "timestamp" }),
+  rewardedAt: integer({ mode: "timestamp" }).notNull(),
+  redeemedAt: integer({ mode: "timestamp" }),
   taskId: integer("task_id")
     .notNull()
     .references(() => tasks.id),

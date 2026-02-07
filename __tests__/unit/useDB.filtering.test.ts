@@ -22,6 +22,7 @@ const createMockTask = (overrides: Partial<ITask> = {}): ITask => ({
   weekWeekendCount: 0,
   monthCount: 0,
   hasCompleted: 0,
+  rewardCount: 0,
   ...overrides,
 });
 

@@ -34,4 +34,13 @@ interface IAward {
   taskId: number;
   rewardNumber: number;
   rewardedAt?: Date;
+  redeemedAt?: Date;
+}
+
+interface IRewardItem {
+  id: number;
+  taskName: string;
+  reward: string | null;
+  rewardedAt: Date;
+  redeemedAt: Date | null;
 }

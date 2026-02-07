@@ -1,5 +1,5 @@
 import { BLACK, PRIMARY, RED, WHITE } from "@/constants/Colors";
-import useTasks from "@/hooks/useDB";
+import useTaskHistory from "@/hooks/useTaskHistory";
 import { useEffect, useState } from "react";
 import { FlatList, Modal, Pressable, StyleSheet, View } from "react-native";
 import StyledText from "./StyledText";
@@ -12,7 +12,7 @@ interface Props {
 }
 export default function CompletionModal({ day, visible, setVisible }: Props) {
 	const [tasks, setTasks] = useState<ITask[]>([])
-	const { getTaskHistory } = useTasks()
+	const { getTaskHistory } = useTaskHistory()
 	useEffect(() => {
 		setTasks([])
 		const [start, end] = getStartAndEndDates(day)

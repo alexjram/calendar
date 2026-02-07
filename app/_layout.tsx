@@ -10,6 +10,7 @@ import Toast from "react-native-toast-message";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import migrations from "../drizzle/migrations";
 import { DBProvider } from "@/context/DBContext";
+import { TaskEventsProvider } from "@/hooks/useTaskEvents";
 import { View, Text } from "react-native";
 import StyledText from "@/components/StyledText";
 import * as Sentry from "@sentry/react-native";
@@ -79,6 +80,7 @@ export default Sentry.wrap(function RootLayout() {
   }
   return (
     <DBProvider db={db}>
+      <TaskEventsProvider>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: PRIMARY,
@@ -100,7 +102,7 @@ export default Sentry.wrap(function RootLayout() {
           }}
         />
         <Tabs.Screen
-          name="(history)"
+          name="history"
           options={{
             title: "History",
             headerShown: false,
@@ -114,7 +116,7 @@ export default Sentry.wrap(function RootLayout() {
           }}
         />
         <Tabs.Screen
-          name="(stats)"
+          name="stats"
           options={{
             title: "Stats",
             headerShown: false,
@@ -127,9 +129,24 @@ export default Sentry.wrap(function RootLayout() {
             ),
           }}
         />
+        <Tabs.Screen
+          name="awards"
+          options={{
+            title: "Rewards",
+            headerShown: false,
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? "trophy-sharp" : "trophy-outline"}
+                color={color}
+                size={24}
+              />
+            ),
+          }}
+        />
       </Tabs>
       <Toast />
       <StatusBar style="dark" />
+      </TaskEventsProvider>
     </DBProvider>
   );
 });

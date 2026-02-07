@@ -271,17 +271,17 @@ describe('Task Lifecycle Integration Tests', () => {
           case 'weekly':
             return { 
               id: task.id, 
-              show: (task.weekWeekdayCount + task.weekWeekendCount) < task.frequency 
+              show: ((task.weekWeekdayCount ?? 0) + (task.weekWeekendCount ?? 0)) < (task.frequency ?? 1)
             };
           case 'monthly':
-            return { id: task.id, show: task.monthCount < task.frequency };
+            return { id: task.id, show: (task.monthCount ?? 0) < (task.frequency ?? 1) };
           case 'weekdays':
             return { 
               id: task.id, 
-              show: todayIsWeekday && task.weekWeekdayCount < task.frequency 
+              show: todayIsWeekday && (task.weekWeekdayCount ?? 0) < (task.frequency ?? 1)
             };
           case 'finite':
-            return { id: task.id, show: task.totalCount < task.frequency };
+            return { id: task.id, show: (task.totalCount ?? 0) < (task.frequency ?? 1) };
           default:
             return { id: task.id, show: true };
         }
