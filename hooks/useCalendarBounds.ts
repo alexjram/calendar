@@ -1,5 +1,6 @@
 import { DBContext } from "@/context/DBContext";
 import { tasks } from "@/db/schema";
+import * as Sentry from "@sentry/react-native";
 import { useCallback, useContext, useEffect, useState } from "react";
 
 export default function useCalendarBounds() {
@@ -25,7 +26,7 @@ export default function useCalendarBounds() {
       return res[0].createdAt;
     } catch (e: any) {
       setError(e.message);
-      console.error(e);
+      Sentry.captureException(e);
       return null;
     } finally {
       setLoading(false);

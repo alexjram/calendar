@@ -12,10 +12,14 @@ module.exports = {
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   moduleNameMapper: {
+    '^@/db/schema$': '<rootDir>/__tests__/__mocks__/db-schema.js',
     '^@/(.*)$': '<rootDir>/$1',
     '^expo-sqlite$': '<rootDir>/__tests__/__mocks__/expo-sqlite.js',
     '^drizzle-orm$': '<rootDir>/__tests__/__mocks__/drizzle-orm.js',
     '^drizzle-orm/expo$': '<rootDir>/__tests__/__mocks__/drizzle-orm.js',
+    '^drizzle-orm/sqlite-core$': '<rootDir>/__tests__/__mocks__/drizzle-orm-sqlite-core.js',
+    '^react-native$': '<rootDir>/__tests__/__mocks__/react-native.js',
+    '^expo-notifications$': '<rootDir>/__tests__/__mocks__/expo-notifications.js',
   },
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
@@ -32,13 +36,21 @@ module.exports = {
   },
   collectCoverageFrom: [
     'services/**/*.ts',
+    'hooks/**/*.ts',
+    'hooks/**/*.tsx',
+    'context/**/*.ts',
+    'app/**/*.ts',
+    'app/**/*.tsx',
     '!**/*.d.ts',
     '!**/node_modules/**',
+    '!**/__tests__/**',
+    '!**/*.test.ts',
+    '!**/*.test.tsx',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'text-summary', 'lcov', 'html'],
   coverageThreshold: {
-    global: {
+    './services/': {
       branches: 70,
       functions: 70,
       lines: 70,

@@ -5,10 +5,11 @@ import TaskEditor from "@/components/TaskEditor";
 import { BLACK, PRIMARY, WHITE } from "@/constants/Colors";
 import useRewards from "@/hooks/useRewards";
 import useTodayTasks from "@/hooks/useTodayTasks";
+import useNotifications from "@/hooks/useNotifications";
 import { getIfRewardAchieved } from "@/services/TaskUtils";
 import { Checkbox } from "expo-checkbox";
-import { useState } from "react";
-import { FlatList, Pressable, StyleSheet, View } from "react-native";
+import { useEffect, useState, useRef } from "react";
+import { FlatList, Pressable, StyleSheet, View, AppState } from "react-native";
 import Toast from "react-native-toast-message";
 
 export default function Index() {
@@ -24,12 +25,44 @@ export default function Index() {
     markAsFullyCompleted,
   } = useTodayTasks();
   const { saveAward, removeLastAward } = useRewards();
+  const { schedulePendingNotification, unscheduleDailyNotification } =
+    useNotifications();
   const [showAddAct, setShowAddAct] = useState<boolean>(false);
   const [showEditAct, setShowEditAct] = useState<boolean>(false);
   const [selectedTask, setSelectedTask] = useState<ITask | null>(null);
   const handleAddActButton = () => {
     setShowAddAct(true);
   };
+
+  const hasPendingTasks = tasks.some((t) => !t.hasCompleted);
+
+  useEffect(() => {
+    if (loading) return;
+
+    if (hasPendingTasks) {
+      schedulePendingNotification();
+    } else {
+      unscheduleDailyNotification();
+    }
+  }, [loading, hasPendingTasks, unscheduleDailyNotification, schedulePendingNotification]);
+
+  // Reschedule notification when app comes to foreground (handles next day)
+  const appState = useRef(AppState.currentState);
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+        // App came to foreground - check if we need to reschedule
+        if (hasPendingTasks) {
+          schedulePendingNotification();
+        }
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [hasPendingTasks, schedulePendingNotification]);
 
   const handleActChange = async (task: ITask, value: boolean) => {
     try {

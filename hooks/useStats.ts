@@ -1,6 +1,7 @@
 import { DBContext } from "@/context/DBContext";
 import { completions, tasks } from "@/db/schema";
 import { getStartAndEndTimestamps } from "@/services/DateUtils";
+import * as Sentry from "@sentry/react-native";
 import { sql } from "drizzle-orm";
 import { useCallback, useContext, useState } from "react";
 import dayjs from "dayjs";
@@ -87,7 +88,7 @@ export default function useStats() {
         return fullResponse;
       } catch (e: any) {
         setError(e.message);
-        console.error(e);
+        Sentry.captureException(e);
         return [];
       } finally {
         setLoading(false);
@@ -127,7 +128,7 @@ export default function useStats() {
       return res;
     } catch (e: any) {
       setError(e.message);
-      console.error(e);
+      Sentry.captureException(e);
     } finally {
       setLoading(false);
     }

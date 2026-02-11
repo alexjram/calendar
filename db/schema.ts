@@ -41,6 +41,20 @@ export const rewards = sqliteTable("rewards", {
     .notNull()
     .references(() => tasks.id),
 });
+
+export const notifications = sqliteTable("notifications", {
+  id: integer().primaryKey(),
+  scheduledAt: integer({ mode: "timestamp" }).notNull(),
+  key: text().unique().notNull(),
+  status: text().$type<"pending" | "cancelled">().notNull().default("pending"),
+});
+
+export const configurations = sqliteTable("configurations", {
+  id: integer().primaryKey(),
+  key: text().notNull().unique(),
+  value: text().notNull(),
+});
+
 export const taskRelations = relations(tasks, ({ many }) => ({
   completions: many(completions),
 }));

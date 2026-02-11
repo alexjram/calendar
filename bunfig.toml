@@ -1,0 +1,29 @@
+# Bun Configuration File
+# 
+# IMPORTANT: Test Execution
+# -------------------------
+# Always use: bun run test
+# Never use:  bun test
+#
+# Reason: bun test uses Bun's built-in test runner which cannot parse
+# React Native's Flow type definitions (import typeof syntax).
+# bun run test uses Jest which is properly configured with moduleNameMapper
+# to handle React Native and Expo modules.
+#
+# Available test commands:
+#   bun run test           - Run all tests once
+#   bun run test:watch     - Run tests in watch mode
+#   bun run test:coverage  - Run tests with coverage report
+#   bun run test:ci        - Run tests for CI/CD
+
+[test]
+# Note: This section configures Bun's native test runner.
+# We don't use Bun's test runner for this project due to React Native
+# compatibility issues. Use 'bun run test' instead.
+preload = []
+
+[install]
+registry = "https://registry.npmjs.org"
+
+[run]
+env = "development"

@@ -1,5 +1,6 @@
 import { DBContext } from "@/context/DBContext";
 import { rewards, tasks } from "@/db/schema";
+import * as Sentry from "@sentry/react-native";
 import { sql } from "drizzle-orm";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { useTaskEvent, useTaskEvents } from "./useTaskEvents";
@@ -38,7 +39,7 @@ export default function useRewards() {
       return rewardList as IRewardItem[];
     } catch (e: any) {
       setError(e.message);
-      console.error(e);
+      Sentry.captureException(e);
     } finally {
       setLoading(false);
     }
@@ -61,7 +62,7 @@ export default function useRewards() {
         await getRewards();
       } catch (e: any) {
         setError(e.message);
-        console.error(e);
+        Sentry.captureException(e);
       }
     },
     [db, getRewards, emit],
@@ -80,7 +81,7 @@ export default function useRewards() {
         await getRewards();
       } catch (e: any) {
         setError(e.message);
-        console.error(e);
+        Sentry.captureException(e);
       }
     },
     [db, getRewards, emit],
@@ -98,7 +99,7 @@ export default function useRewards() {
         await getRewards();
       } catch (e: any) {
         setError(e.message);
-        console.error(e);
+        Sentry.captureException(e);
       }
     },
     [db, getRewards, emit],

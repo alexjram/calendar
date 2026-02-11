@@ -6,6 +6,7 @@ import {
   getMonthStartAndEnd,
   getMonthStartAndEndTimestamps,
   isWeekend,
+  getNotificationCutoff,
 } from '@/services/DateUtils';
 
 describe('DateUtils', () => {
@@ -244,6 +245,55 @@ describe('DateUtils', () => {
       fridayTimes.forEach(date => {
         expect(isWeekend(date)).toBe(false);
       });
+    });
+  });
+
+  describe('getNotificationCutoff', () => {
+    it.each([
+      {
+        input: new Date('2025-01-15T12:30:45.123'),
+        expected: new Date('2025-01-15T23:00:00.000'),
+        description: 'midday timestamp',
+      },
+      {
+        input: new Date('2025-01-15T23:00:00.000'),
+        expected: new Date('2025-01-15T23:00:00.000'),
+        description: 'exactly at 23:00',
+      },
+      {
+        input: new Date('2025-01-15T23:30:00.000'),
+        expected: new Date('2025-01-15T23:00:00.000'),
+        description: 'after 23:00',
+      },
+      {
+        input: new Date('2025-01-15T00:00:00.000'),
+        expected: new Date('2025-01-15T23:00:00.000'),
+        description: 'midnight',
+      },
+      {
+        input: new Date('2024-02-29T10:20:30.400'),
+        expected: new Date('2024-02-29T23:00:00.000'),
+        description: 'leap year date',
+      },
+    ])('should return 23:00:00 for $description', ({ input, expected }) => {
+      const result = getNotificationCutoff(input);
+      expect(result).toEqual(expected);
+    });
+
+    it('should use current date when no argument provided', () => {
+      const result = getNotificationCutoff();
+      const now = new Date();
+      expect(result.getHours()).toBe(23);
+      expect(result.getMinutes()).toBe(0);
+      expect(result.getSeconds()).toBe(0);
+      expect(result.getDate()).toBe(now.getDate());
+    });
+
+    it('should not mutate the original date', () => {
+      const original = new Date('2025-01-15T12:30:45.123');
+      const originalTime = original.getTime();
+      getNotificationCutoff(original);
+      expect(original.getTime()).toBe(originalTime);
     });
   });
 });

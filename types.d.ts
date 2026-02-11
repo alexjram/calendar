@@ -44,3 +44,16 @@ interface IRewardItem {
   rewardedAt: Date;
   redeemedAt: Date | null;
 }
+
+interface IConfig {
+  id?: number;
+  key: string;
+  value: string;
+}
+
+interface INotification {
+  id?: number;
+  scheduledAt: Date;
+  key: string;
+  status: "cancelled" | "pending";
+}

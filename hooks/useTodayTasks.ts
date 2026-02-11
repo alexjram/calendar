@@ -1,10 +1,12 @@
 import { DBContext } from "@/context/DBContext";
 import { completions, rewards, tasks } from "@/db/schema";
 import { getStartAndEndTimestamps } from "@/services/DateUtils";
+import * as Sentry from "@sentry/react-native";
 import { sql } from "drizzle-orm";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import dayjs from "dayjs";
 import { useTaskEvents } from "./useTaskEvents";
+import { AppState } from "react-native";
 
 export default function useTodayTasks() {
   const db = useContext(DBContext);
@@ -12,6 +14,7 @@ export default function useTodayTasks() {
   const [dbTasks, setTasks] = useState<ITask[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const appState = useRef(AppState.currentState);
 
   const getTasks = useCallback(async () => {
     if (!db || loading) return;
@@ -42,31 +45,31 @@ export default function useTodayTasks() {
           maxRewards: tasks.maxRewards,
           totalCount:
             sql<number>`(SELECT COUNT(*) FROM ${completions} WHERE ${completions.taskId} = ${tasks}.${tasks.id})`.as(
-              "totalCount"
+              "totalCount",
             ),
           todayCount:
             sql<number>`(SELECT COUNT(*) FROM ${completions} WHERE ${completions.taskId} = ${tasks}.${tasks.id} AND ${completions.completedAt} >= ${todayStart} AND ${completions.completedAt} <= ${todayEnd})`.as(
-              "todayCount"
+              "todayCount",
             ),
           weekWeekdayCount:
             sql<number>`(SELECT COUNT(*) FROM ${completions} WHERE ${completions.taskId} = ${tasks}.${tasks.id} AND ${completions.completedAt} >= ${weekStart} AND ${completions.completedAt} <= ${weekEnd} AND strftime('%w', datetime(${completions.completedAt}, 'unixepoch', 'localtime')) BETWEEN '1' AND '5')`.as(
-              "weekWeekdayCount"
+              "weekWeekdayCount",
             ),
           weekWeekendCount:
             sql<number>`(SELECT COUNT(*) FROM ${completions} WHERE ${completions.taskId} = ${tasks}.${tasks.id} AND ${completions.completedAt} >= ${weekStart} AND ${completions.completedAt} <= ${weekEnd} AND (strftime('%w', datetime(${completions.completedAt}, 'unixepoch', 'localtime')) = '0' OR strftime('%w', datetime(${completions.completedAt}, 'unixepoch', 'localtime')) = '6'))`.as(
-              "weekWeekendCount"
+              "weekWeekendCount",
             ),
           monthCount:
             sql<number>`(SELECT COUNT(*) FROM ${completions} WHERE ${completions.taskId} = ${tasks}.${tasks.id} AND ${completions.completedAt} >= ${monthStart} AND ${completions.completedAt} <= ${monthEnd})`.as(
-              "monthCount"
+              "monthCount",
             ),
           hasCompleted:
             sql<number>`(SELECT COUNT(*) FROM ${completions} WHERE ${completions.taskId} = ${tasks}.${tasks.id} AND ${completions.completedAt} >= ${todayStart} AND ${completions.completedAt} <= ${todayEnd})`.as(
-              "hasCompleted"
+              "hasCompleted",
             ),
           rewardCount:
             sql<number>`(SELECT COUNT(*) FROM ${rewards} WHERE ${rewards.taskId} = ${tasks}.${tasks.id})`.as(
-              "rewardCount"
+              "rewardCount",
             ),
         })
         .from(tasks)
@@ -102,7 +105,7 @@ export default function useTodayTasks() {
             case "other-day":
               const daysSinceCreation = today.diff(
                 dayjs(task.createdAt),
-                "day"
+                "day",
               );
               const shouldShowOnDay =
                 daysSinceCreation >= 0 && daysSinceCreation % 2 === 0;
@@ -123,7 +126,7 @@ export default function useTodayTasks() {
       setTasks(filteredTasks);
     } catch (e: any) {
       setError(e.message);
-      console.error(e);
+      Sentry.captureException(e);
     } finally {
       setLoading(false);
     }
@@ -134,6 +137,20 @@ export default function useTodayTasks() {
     getTasks();
   }, [db, dbTasks.length, getTasks]);
 
+  useEffect(() => {
+    const subscribe = AppState.addEventListener("change", (nextAppState) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === "active"
+      ) {
+        getTasks();
+      }
+    });
+    return () => {
+      subscribe.remove();
+    };
+  }, []);
+
   const addTask = useCallback(
     async (task: ITaskBase) => {
       if (!db) return;
@@ -143,7 +160,7 @@ export default function useTodayTasks() {
       await getTasks();
       emit("taskAdded");
     },
-    [db, getTasks, emit]
+    [db, getTasks, emit],
   );
 
   const deleteTask = useCallback(
@@ -157,7 +174,7 @@ export default function useTodayTasks() {
       await getTasks();
       emit("taskDeleted");
     },
-    [db, getTasks, emit]
+    [db, getTasks, emit],
   );
 
   const updateTask = useCallback(
@@ -170,7 +187,7 @@ export default function useTodayTasks() {
       await getTasks();
       emit("taskUpdated");
     },
-    [db, getTasks, emit]
+    [db, getTasks, emit],
   );
 
   const markAsCompleted = useCallback(
@@ -189,7 +206,7 @@ export default function useTodayTasks() {
       await getTasks();
       emit("taskCompleted");
     },
-    [db, dbTasks, getTasks, emit]
+    [db, dbTasks, getTasks, emit],
   );
 
   const markAsUncompleted = useCallback(
@@ -202,13 +219,13 @@ export default function useTodayTasks() {
         await db
           .delete(completions)
           .where(
-            sql`${completions.taskId} = ${id} AND ${completions.completedAt} >= ${today.getTime() / 1000}`
+            sql`${completions.taskId} = ${id} AND ${completions.completedAt} >= ${today.getTime() / 1000}`,
           );
       }
       await getTasks();
       emit("taskUncompleted");
     },
-    [db, dbTasks, getTasks, emit]
+    [db, dbTasks, getTasks, emit],
   );
 
   const markAsFullyCompleted = useCallback(
@@ -221,7 +238,7 @@ export default function useTodayTasks() {
       await getTasks();
       emit("taskFullyCompleted");
     },
-    [db, getTasks, emit]
+    [db, getTasks, emit],
   );
 
   return {

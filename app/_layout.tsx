@@ -17,6 +17,23 @@ import * as Sentry from "@sentry/react-native";
 import dayjs from "dayjs";
 import advancedformat from "dayjs/plugin/advancedFormat";
 import isoWeek from "dayjs/plugin/isoWeek";
+import * as Notifications from "expo-notifications";
+import { useEffect } from "react";
+
+async function registerForPushNotificationsAsync() {
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+
+  if (existingStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+
+  if (finalStatus !== 'granted') {
+    console.log('Failed to get push token for push notification!');
+    return;
+  }
+}
 
 Sentry.init({
   dsn: "https://fb8e5e590241a7d2d9da8be7943796d0@o4510761183674368.ingest.us.sentry.io/4510761184395264",
@@ -43,8 +60,21 @@ dayjs.extend(isoWeek);
 const expo = SQLite.openDatabaseSync("db.sqlite");
 const db = drizzle(expo);
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
 export default Sentry.wrap(function RootLayout() {
   const { success, error } = useMigrations(db, migrations);
+
+  useEffect(() => {
+    registerForPushNotificationsAsync();
+  }, []);
   let [fontsLoaded] = useFonts({
     HappyMonkey_400Regular,
   });
@@ -81,71 +111,71 @@ export default Sentry.wrap(function RootLayout() {
   return (
     <DBProvider db={db}>
       <TaskEventsProvider>
-      <Tabs
-        screenOptions={{
-          tabBarActiveTintColor: PRIMARY,
-          headerTintColor: BLACK,
-        }}
-      >
-        <Tabs.Screen
-          name="index"
-          options={{
-            title: "Home",
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? "home-sharp" : "home-outline"}
-                color={color}
-                size={24}
-              />
-            ),
+        <Tabs
+          screenOptions={{
+            tabBarActiveTintColor: PRIMARY,
+            headerTintColor: BLACK,
           }}
-        />
-        <Tabs.Screen
-          name="history"
-          options={{
-            title: "History",
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? "calendar-sharp" : "calendar-outline"}
-                color={color}
-                size={24}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="stats"
-          options={{
-            title: "Stats",
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? "stats-chart-sharp" : "stats-chart-outline"}
-                color={color}
-                size={24}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="awards"
-          options={{
-            title: "Rewards",
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? "trophy-sharp" : "trophy-outline"}
-                color={color}
-                size={24}
-              />
-            ),
-          }}
-        />
-      </Tabs>
-      <Toast />
-      <StatusBar style="dark" />
+        >
+          <Tabs.Screen
+            name="index"
+            options={{
+              title: "Home",
+              headerShown: false,
+              tabBarIcon: ({ color, focused }) => (
+                <Ionicons
+                  name={focused ? "home-sharp" : "home-outline"}
+                  color={color}
+                  size={24}
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="history"
+            options={{
+              title: "History",
+              headerShown: false,
+              tabBarIcon: ({ color, focused }) => (
+                <Ionicons
+                  name={focused ? "calendar-sharp" : "calendar-outline"}
+                  color={color}
+                  size={24}
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="stats"
+            options={{
+              title: "Stats",
+              headerShown: false,
+              tabBarIcon: ({ color, focused }) => (
+                <Ionicons
+                  name={focused ? "stats-chart-sharp" : "stats-chart-outline"}
+                  color={color}
+                  size={24}
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="awards"
+            options={{
+              title: "Rewards",
+              headerShown: false,
+              tabBarIcon: ({ color, focused }) => (
+                <Ionicons
+                  name={focused ? "trophy-sharp" : "trophy-outline"}
+                  color={color}
+                  size={24}
+                />
+              ),
+            }}
+          />
+        </Tabs>
+        <Toast />
+        <StatusBar style="dark" />
       </TaskEventsProvider>
     </DBProvider>
   );

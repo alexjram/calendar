@@ -1,6 +1,7 @@
 import { DBContext } from "@/context/DBContext";
 import { completions, rewards, tasks } from "@/db/schema";
 import { getStartAndEndTimestamps } from "@/services/DateUtils";
+import * as Sentry from "@sentry/react-native";
 import { sql } from "drizzle-orm";
 import { useCallback, useContext, useState } from "react";
 import { useTaskEvent } from "./useTaskEvents";
@@ -52,7 +53,7 @@ export default function useTaskHistory() {
         setHistory(res);
       } catch (e: any) {
         setError(e.message);
-        console.error(e);
+        Sentry.captureException(e);
       } finally {
         setLoading(false);
       }
